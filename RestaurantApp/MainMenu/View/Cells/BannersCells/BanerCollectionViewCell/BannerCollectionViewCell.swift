@@ -13,7 +13,7 @@ class BannerCollectionViewCell: UICollectionViewCell {
     static let identifier = "BannerCollectionCell" 
     
     @IBOutlet weak var bannerImage: UIImageView!
-
+    
     override class func awakeFromNib() {
         super .awakeFromNib()
     }
@@ -23,7 +23,7 @@ class BannerCollectionViewCell: UICollectionViewCell {
     }
     
     private func configImage() {
-        bannerImage.contentMode = .scaleAspectFill
+        bannerImage.contentMode = .scaleToFill
         bannerImage.layer.cornerRadius = 10
     }
 }

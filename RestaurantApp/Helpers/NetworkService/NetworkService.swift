@@ -12,7 +12,6 @@ protocol NetworkServiceProtocol {
     
     func getCategoriesList(completion: @escaping (Result<ListOfCategoiesModel?, Error>) -> Void)
     func getMealsFromCategory(category: String, completion: @escaping (Result<MealsFromCategoryModel?, Error>) -> Void)
-    func getFullMealById(id: String, completion: @escaping (Result<DiscriptionMealModel?, Error>) -> Void)
 }
 
 class NetworkService: NetworkServiceProtocol {
@@ -60,26 +59,6 @@ class NetworkService: NetworkServiceProtocol {
             }
             do {
                 let obj = try JSONDecoder().decode(MealsFromCategoryModel.self, from: data!)
-                completion(.success((obj)))
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
-    }
-    
-    func getFullMealById(id: String, completion: @escaping (Result<DiscriptionMealModel?, Error>) -> Void) {
-        
-        let urlString = TheMealDBAPIPath.base.rawValue + TheMealDBAPIPath.apiKey.rawValue + TheMealDBAPIPath.getFullMealById.rawValue + id
-        
-        guard let url = URL(string: urlString) else { return }
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            do {
-                let obj = try JSONDecoder().decode(DiscriptionMealModel.self, from: data!)
                 completion(.success((obj)))
             } catch {
                 completion(.failure(error))

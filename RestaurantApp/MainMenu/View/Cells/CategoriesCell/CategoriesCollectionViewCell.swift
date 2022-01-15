@@ -21,12 +21,23 @@ class CategoriesCollectionViewCell: UICollectionViewCell {
     //        self.contentView.backgroundColor = .white
     //    }
     
-    func setupCell(group: String, isSelected: Bool) {
-        self.categoryLabel.text = group
-        if isSelected {
-            contentView.backgroundColor = .blue
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        configCellView()
+    }
+    
+    func setupCell(with model: CategoryCellWithSelectedFlag ) {
+        self.categoryLabel.text = model.category
+        if model.isSelected {
+            contentView.backgroundColor = UIColor.categoryCellColorIsSelected
         } else {
-            contentView.backgroundColor = .white
+            contentView.backgroundColor = UIColor.categoryCellColorDefault
         }
+    }
+    
+    private func configCellView() {
+        layer.cornerRadius = 12
+        layer.borderColor = UIColor.categoryCellBorderColor.cgColor
+        layer.borderWidth = 0.5
     }
 }

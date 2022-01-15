@@ -14,7 +14,6 @@ protocol MainMenuViewProtocol: AnyObject {
     
     func updateCellsForSection(section: Int)
     func updateCategoriesCollectionView()
-    func showError(with: Error)
 }
 
 
@@ -33,19 +32,11 @@ class MainMenuViewController: UIViewController, MainMenuViewProtocol {
     
     //MARK: - Methods
     func updateCellsForSection(section: Int) {
-        mainMenuTableView.reloadSections([section], with: .none)
+        mainMenuTableView.reloadSections([section], with: .automatic)
     }
     
     func updateCategoriesCollectionView() {
         categoriesCollectionView.reloadData()
-    }
-    
-    func showError(with: Error) {
-        
-    }
-    
-    func showActivityIndicator(isActive: Bool) {
-        
     }
     
     //MARK: - Private methods
@@ -55,12 +46,12 @@ class MainMenuViewController: UIViewController, MainMenuViewProtocol {
     }
     
     private func makeTableView() -> UITableView {
-        let tableView = UITableView(frame: view.bounds)
+        let tableView = UITableView(frame: view.bounds, style: .plain)
         
         tableView.dataSource = self
         tableView.delegate = self
         
-        tableView.backgroundColor = .white
+        tableView.backgroundColor = .clear
         
         tableView.register(BannerTableViewCell.self, forCellReuseIdentifier: BannerTableViewCell.identifier)
         tableView.register(UINib(nibName: "MealCell", bundle: nil), forCellReuseIdentifier: MealCell.identifier)
@@ -76,6 +67,7 @@ class MainMenuViewController: UIViewController, MainMenuViewProtocol {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layer)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.isPagingEnabled = false
+        collectionView.backgroundColor = .white
         
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -91,7 +83,7 @@ extension MainMenuViewController: UITableViewDelegate, UITableViewDataSource {
     
     // MARK:  UITableViewDataSource
     func numberOfSections(in tableView: UITableView) -> Int {
-        2
+        return presenter.getNumberOfSection()
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -101,14 +93,14 @@ extension MainMenuViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
             let cell = mainMenuTableView.dequeueReusableCell(withIdentifier: BannerTableViewCell.identifier, for: indexPath) as! BannerTableViewCell
-            cell.backgroundColor = .green
+            cell.backgroundColor = .clear
             return cell
         } else if indexPath.section == 1 {
             let mealInfo: Meal = presenter.getMealInfo(for: indexPath)
-            let mealDiscription: String = presenter.getMealDiscription(for: indexPath)
+            let discription: String = "Съешь ещё этих мягких французских булок да выпей чаю"
             
             let cell = mainMenuTableView.dequeueReusableCell(withIdentifier: MealCell.identifier, for: indexPath) as! MealCell
-            cell.configCellWithMealModel(with: mealInfo)
+            cell.configCellWithMealModel(with: mealInfo, and: discription)
             return cell
         }
         return UITableViewCell()
@@ -137,38 +129,40 @@ extension MainMenuViewController: UITableViewDelegate, UITableViewDataSource {
 // MARK: - CategoriesCollectionView extension
 extension MainMenuViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
+    //MARK: UICollectionViewDataSource
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return presenter.getNumberOfCategories()
     }
-    //MARK: UICollectionViewDataSource
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let category = presenter.getMealCategory(for: indexPath)
+        let categoryCellModel = presenter.getMealCategoryCell(for: indexPath)
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoriesCollectionViewCell", for: indexPath) as! CategoriesCollectionViewCell
-        cell.setupCell(group: category, isSelected: false)
+        cell.setupCell(with: categoryCellModel)
         
         return cell
     }
     
-    
-    //MARK: UICollectionViewDelegateFlowLayout
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let category = presenter.getMealCategory(for: indexPath)
-        let width = category.widthOfString(usingFont: UIFont.systemFont(ofSize: 17)) 
-        return CGSize(width: width + 20 , height:  collectionView.frame.height )
+    //MARK: UICollectionViewDelegate
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        presenter.wasSelectCategory(at: indexPath)
+        mainMenuTableView.scrollToRow(at: IndexPath(row: 0, section: 1), at: .none, animated: false)
+        collectionView.reloadData()
     }
     
-    //    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-    //        return 10
-    //    }
-    //    
-    //    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-    //        return UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)
-    //    }
-    //    
-    //    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-    //        return 10 // для груп
-    //    }
+    //MARK: UICollectionViewDelegateFlowLayout
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let category = presenter.getMealCategoryCell(for: indexPath).category
+        let width = category.widthOfString(usingFont: UIFont.systemFont(ofSize: 17))
+        return CGSize(width: width + 20 , height:  collectionView.frame.height / 3 * 2 )
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 15
+    }
 }
 

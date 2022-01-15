@@ -23,7 +23,7 @@ class ModuleBuilder {
         let interactor: MainMenuInteractorProtocol = MainMenuInteractor(presenter: presenter, networkService: networkService)
         
         view.presenter = presenter
-    
+        
         presenter.interactor = interactor
         presenter.router = router
         

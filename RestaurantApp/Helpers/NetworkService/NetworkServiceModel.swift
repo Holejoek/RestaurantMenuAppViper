@@ -13,10 +13,6 @@ struct ListOfCategoiesModel: Codable {
     let categories: [MealCategory]
 }
 
-// MARK: -  Discription request
-struct DiscriptionMealModel: Codable {
-    let meals: [MealDiscription]
-}
 
 // MARK: -  Category request
 struct MealsFromCategoryModel: Codable {

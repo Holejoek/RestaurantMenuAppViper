@@ -11,29 +11,28 @@ protocol MainMenuInteractorProtocol: AnyObject {
     
     var loadedMeals: Box<[Meal]> { get set }
     var loadedCategories: Box<[MealCategory]> { get set }
-//    var loadedMealDiscriptions: Box<[MealDiscription]> { get set }
+    //    var loadedMealDiscriptions: Box<[MealDiscription]> { get set }
     
     var networkService: NetworkServiceProtocol! { get set }    
     
     func getCountOfLoadedMeals() -> Int
     func getCountOfLoadedCategories() -> Int
     func categoryWasSelected(indexOfCategory: Int)
+    func checkThatCategorySelectedAt(indexPath: IndexPath) -> Bool
     
     //NetworkService
     func startNetworkServiceForMainMenu()
-    func getMealDiscriptions(for indexPath: IndexPath) -> String
-
 }
 
 class MainMenuInteractor: MainMenuInteractorProtocol {
-        
+    
     var loadedMeals = Box([Meal]())
     var loadedCategories = Box([MealCategory]())
-//    var loadedMealDiscriptions = Box([MealDiscription]())
+    //    var loadedMealDiscriptions = Box([MealDiscription]())
     
     var networkService: NetworkServiceProtocol!
     weak var presenter: MainMenuPresenterProtocol!
-
+    
     private var selectedCategory: Int = 0
     
     required init(presenter: MainMenuPresenterProtocol, networkService: NetworkServiceProtocol) {
@@ -51,6 +50,12 @@ class MainMenuInteractor: MainMenuInteractorProtocol {
     
     func categoryWasSelected(indexOfCategory: Int) {
         selectedCategory = indexOfCategory
+        exequteRequest(with: .loadMeals)
+    }
+    
+    func checkThatCategorySelectedAt(indexPath: IndexPath) -> Bool {
+        let isSelected = loadedCategories.value[indexPath.item].strCategory == loadedCategories.value[selectedCategory].strCategory
+        return isSelected
     }
     
     //MARK: - NetworkService
@@ -60,29 +65,6 @@ class MainMenuInteractor: MainMenuInteractorProtocol {
         exequteRequest(with: .loadCategories)
         
     }
-    
-    func getMealDiscriptions(for indexPath: IndexPath) -> String {
-        var mealDiscription: String = ""
-        let mealId: String = loadedMeals.value[indexPath.row].idMeal
-        
-        networkService.getFullMealById(id: mealId) { result in    // [weak self] если понадобится
-            //  Возможно здесь понадобится семафор для того чтобы возвращался не путой mealDiscription
-            DispatchQueue.main.async {
-                
-                switch result {
-                case .success(let discription):
-                    guard let discription = discription?.meals.first?.strInstructions else {
-                        return
-                    }
-                    mealDiscription = discription
-                case .failure(let error):
-                    print(error)
-                }
-            }
-        }
-        return mealDiscription
-    }
-    
     
     private enum RequestType {
         case loadBanners
@@ -141,8 +123,6 @@ class MainMenuInteractor: MainMenuInteractorProtocol {
                 case .failure(let error):
                     print(error)
                 }
-                
-                
             }
         }
     }

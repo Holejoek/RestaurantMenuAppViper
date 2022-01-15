@@ -16,7 +16,6 @@ class BannerTableViewCell: UITableViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        
         banersImageArray.append(UIImage(named: "banner1")!)
         banersImageArray.append(UIImage(named: "banner2")!)
         
@@ -31,7 +30,9 @@ class BannerTableViewCell: UITableViewCell {
         
         let collectionView = UICollectionView(frame: contentView.frame, collectionViewLayout: layer)
         collectionView.showsHorizontalScrollIndicator = false
-        collectionView.isPagingEnabled = true // Можно попробовать (желательно) сделать чтоб баннер автоматически пролистывался
+        collectionView.isPagingEnabled = true
+        collectionView.backgroundColor = .clear
+        
         collectionView.register(UINib(nibName: "BannerCollectionCell", bundle: nil), forCellWithReuseIdentifier: BannerCollectionViewCell.identifier)
         
         addSubview(collectionView)

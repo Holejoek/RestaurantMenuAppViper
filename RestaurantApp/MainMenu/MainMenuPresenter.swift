@@ -14,15 +14,17 @@ protocol MainMenuPresenterProtocol: AnyObject {
     func notifyThatViewDidLoad()
     
     func getMealInfo(for indexPath: IndexPath) -> Meal
-    func getMealDiscription(for indexPath: IndexPath) -> String
-    func getMealCategory(for indexPath: IndexPath) -> String
-    func notifyThatMenuCellNeedDiscriptionAt(indexPath: IndexPath) -> String
+    func getMealCategoryCell(for indexPath: IndexPath) -> CategoryCellWithSelectedFlag
     
     func getNumberOfCategories() -> Int
     func getNumberOfRows(for section: Int) -> Int
+    func getNumberOfSection() -> Int
+    
     func getHeightForRowAt(for indexPath: IndexPath, heighOfView: Double) -> Double
     func getHeightForHeader(for section: Int, heightOfView: Double) -> Double
-    func didSelectRowAt(indexPath: IndexPath)
+    
+    func wasSelectedRowAt(indexPath: IndexPath)
+    func wasSelectCategory(at indexPath: IndexPath)
 }
 
 class MainMenuPresenter:  MainMenuPresenterProtocol {
@@ -39,39 +41,33 @@ class MainMenuPresenter:  MainMenuPresenterProtocol {
         interactor.startNetworkServiceForMainMenu()
         makeDataBinding()
     }
+    
     private func makeDataBinding() {
         interactor.loadedCategories.bind { [weak self] _ in
             self?.view.updateCategoriesCollectionView()
         }
-        
         interactor.loadedMeals.bind { [weak self] _ in
             self?.view.updateCellsForSection(section: 1)
         }
     }
     
+    //MARK: Data
     func getMealInfo(for indexPath: IndexPath) -> Meal {
         let meal: Meal = interactor.loadedMeals.value[indexPath.item]
         return meal
     }
     
-    func getMealDiscription(for indexPath: IndexPath) -> String {
-        return interactor.getMealDiscriptions(for: indexPath)
+    func getMealCategoryCell(for indexPath: IndexPath) -> CategoryCellWithSelectedFlag {
+        guard let list = interactor.loadedCategories.value else { return (category: "", isSelected: false)}
+        let category = list[indexPath.item].strCategory
+        let isSelected = interactor.checkThatCategorySelectedAt(indexPath: indexPath)
+        return (category: category, isSelected: isSelected)
     }
     
-    func getMealCategory(for indexPath: IndexPath) -> String {
-        guard let list = interactor.loadedCategories.value else { return ""}
-        return list[indexPath.item].strCategory
-    }
-    
-    func notifyThatMenuCellNeedDiscriptionAt(indexPath: IndexPath) -> String {
-        return interactor.getMealDiscriptions(for: indexPath)
-    }
-    
+    //MARK: Counting
     func getNumberOfCategories() -> Int {
         return interactor.getCountOfLoadedCategories()
     }
-    
-  
     
     func getNumberOfRows(for section: Int) -> Int {
         if section == 0 {
@@ -82,9 +78,14 @@ class MainMenuPresenter:  MainMenuPresenterProtocol {
         return 0 
     }
     
+    func getNumberOfSection() -> Int {
+        return 2
+    }
+    
+    //MARK: Sizing
     func getHeightForRowAt(for indexPath: IndexPath, heighOfView: Double) -> Double {
         if indexPath.section == 0 {
-            return heighOfView / 6
+            return heighOfView / 5
         } else if indexPath.section == 1 {
             return heighOfView / 5
         }
@@ -93,16 +94,19 @@ class MainMenuPresenter:  MainMenuPresenterProtocol {
     
     func getHeightForHeader(for section: Int, heightOfView: Double) -> Double {
         switch section {
-        case 0:
-            return 0
         case 1:
-            return heightOfView / 8
+            return heightOfView / 15
         default:
             return 0
         }
     }
     
-    func didSelectRowAt(indexPath: IndexPath) {
+    //MARK: Events
+    func wasSelectedRowAt(indexPath: IndexPath) {
         
+    }
+    
+    func wasSelectCategory(at indexPath: IndexPath) {
+        interactor.categoryWasSelected(indexOfCategory: indexPath.item)
     }
 }
